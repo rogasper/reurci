@@ -1,0 +1,15 @@
+{
+  "name": "@reurci/mastra",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./index.ts"
+    }
+  },
+  "dependencies": {
+    "@reurci/env": "workspace:*",
+    "zod": "catalog:"
+  }
+}

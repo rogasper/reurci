@@ -15,6 +15,7 @@
     "@reurci/auth": "workspace:*",
     "@reurci/db": "workspace:*",
     "@reurci/env": "workspace:*",
+    "@reurci/mastra": "workspace:*",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
     "dotenv": "catalog:",

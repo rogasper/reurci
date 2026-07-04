@@ -29,11 +29,13 @@ reurci/
 
 ## Mastra Rules
 
+- Mastra is **served from `apps/server`** via `@mastra/ai-sdk` (not as a standalone dev server)
 - Register all agents and workflows in `apps/mastra/index.ts`
 - Place agents in `apps/mastra/agents/`, tools in `apps/mastra/tools/`, workflows in `apps/mastra/workflows/`
 - Use `bun run dev` (runs `turbo run dev`) for local development
-- Set `OPENAI_API_KEY` in `apps/server/.env` (see `.env.example`)
+- Set `SUMOPOD_API_KEY` in `apps/server/.env` (see `.env.example`)
 - Mastra dependencies (`mastra`, `@mastra/core`, `@mastra/memory`, etc.) live in the **root** `package.json`
+- The `@reurci/mastra` workspace package exports the Mastra instance consumed by `apps/server`
 
 ## Resources
 

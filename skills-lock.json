@@ -7,6 +7,12 @@
       "skillPath": "skills/mastra/SKILL.md",
       "computedHash": "f0ca76d36d67a345064f471a9577e752beb2b20ab46acdf154ed223905e1d3a4"
     },
+    "ponytail": {
+      "source": "dietrichgebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "4503a9dba2dca5836469a104c90e0c32ae9cb8bb97d02806e6fa06d15ceed56a"
+    },
     "tanstack-start-best-practices": {
       "source": "deckardger/tanstack-agent-skills",
       "sourceType": "github",

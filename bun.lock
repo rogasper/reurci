@@ -26,6 +26,14 @@
         "typescript": "catalog:",
       },
     },
+    "apps/mastra": {
+      "name": "@reurci/mastra",
+      "version": "0.0.1",
+      "dependencies": {
+        "@reurci/env": "workspace:*",
+        "zod": "catalog:",
+      },
+    },
     "apps/server": {
       "name": "server",
       "dependencies": {
@@ -34,6 +42,7 @@
         "@reurci/auth": "workspace:*",
         "@reurci/db": "workspace:*",
         "@reurci/env": "workspace:*",
+        "@reurci/mastra": "workspace:*",
         "@trpc/server": "catalog:",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
@@ -551,6 +560,8 @@
     "@reurci/db": ["@reurci/db@workspace:packages/db"],
 
     "@reurci/env": ["@reurci/env@workspace:packages/env"],
+
+    "@reurci/mastra": ["@reurci/mastra@workspace:apps/mastra"],
 
     "@reurci/ui": ["@reurci/ui@workspace:packages/ui"],
 

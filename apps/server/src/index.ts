@@ -3,6 +3,7 @@ import { createContext } from "@reurci/api/context";
 import { appRouter } from "@reurci/api/routers/index";
 import { auth } from "@reurci/auth";
 import { env } from "@reurci/env/server";
+import { mastra } from "@reurci/mastra";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -31,6 +32,12 @@ app.use(
     },
   }),
 );
+
+app.post("/api/ai/ping", async (c) => {
+  const agent = mastra.getAgent("tailorAgent");
+  const result = await agent.generate("Reply with exactly: pong from REURCI AI");
+  return c.json({ text: result.text });
+});
 
 app.get("/", (c) => {
   return c.text("OK");
