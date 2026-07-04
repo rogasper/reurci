@@ -2,7 +2,7 @@ name: reurci
 
 services:
   postgres:
-    image: postgres
+    image: pgvector/pgvector:pg17
     container_name: reurci-postgres
     environment:
       POSTGRES_DB: reurci
@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - reurci_postgres_data:/var/lib/postgresql
+      - reurci_postgres_data_v2:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -20,4 +20,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  reurci_postgres_data:
+  reurci_postgres_data_v2:

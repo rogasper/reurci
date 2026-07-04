@@ -10,14 +10,15 @@
     }
   },
   "scripts": {
-    "db:push": "drizzle-kit push",
+    "db:init": "bun run ./scripts/init-pgvector.ts",
+    "db:push": "bun run db:init && drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "drizzle-kit migrate",
-    "db:start": "docker compose up -d",
-    "db:watch": "docker compose up",
-    "db:stop": "docker compose stop",
-    "db:down": "docker compose down"
+    "db:start": "podman compose up -d",
+    "db:watch": "podman compose up",
+    "db:stop": "podman compose stop",
+    "db:down": "podman compose down"
   },
   "dependencies": {
     "@reurci/env": "workspace:*",
