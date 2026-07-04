@@ -11,6 +11,8 @@ import {
 } from "@mastra/observability";
 import { tailorAgent } from "./agents/tailor-agent";
 
+export { generateEmbedding } from "./tools/embed";
+
 export const mastra = new Mastra({
   agents: { tailorAgent },
   storage: new MastraCompositeStore({

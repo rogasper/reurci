@@ -37,6 +37,16 @@ reurci/
 - Mastra dependencies (`mastra`, `@mastra/core`, `@mastra/memory`, etc.) live in the **root** `package.json`
 - The `@reurci/mastra` workspace package exports the Mastra instance consumed by `apps/server`
 
+## Design System
+
+- **All UI must follow `DESIGN.md`** — the Portrait theme defines colors, typography, spacing, border radii, shadows, and elevation
+- **Colors:** Portrait Ink `#08304c` for text/lines, white canvas for backgrounds, pastel washes for accents (mint `#d7ffe2`, sky `#e8f1ff`, peach `#ffebd6`)
+- **Fonts:** Switzer (body/UI 10-24px), Basier Circle fallback (headings 31px+)
+- **Radii:** cards 24px, buttons 28px, inputs 16px, tags 9999px
+- **Buttons:** `outline` (visible border), `ghost` (transparent + hover), `secondary` (sky-wash), `rainbow` (one CTA per view with 1.5px rainbow gradient border)
+- **Shadows:** soft multi-layer at max 3-8% opacity + 1px oklab hairline
+- **Theme:** light only — no dark mode
+
 ## Resources
 
 - [Mastra Documentation](https://mastra.ai/llms.txt)
