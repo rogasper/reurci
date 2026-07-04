@@ -1,0 +1,3 @@
+{
+  "extends": "@reurci/config/tsconfig.base.json"
+}
