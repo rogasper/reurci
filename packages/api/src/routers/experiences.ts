@@ -3,12 +3,20 @@ import { protectedProcedure, router } from "../index";
 import { db } from "@reurci/db";
 import { experience } from "@reurci/db/schema/experiences";
 import { generateEmbedding } from "@reurci/mastra";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "@reurci/db";
+
+function normalizeDate(d: string | undefined | null): string | undefined {
+  if (!d) return undefined;
+  const s = String(d);
+  if (/^\d{4}-\d{2}$/.test(s)) return `${s}-01`;
+  if (/^\d{4}$/.test(s)) return `${s}-01-01`;
+  return s;
+}
 
 const experienceInput = z.object({
   company: z.string().min(1),
   role: z.string().min(1),
-  periodStart: z.string(),
+  periodStart: z.string().optional(),
   periodEnd: z.string().optional(),
   description: z.string().optional(),
   achievements: z.array(z.string()).optional(),
@@ -39,22 +47,27 @@ export const experienceRouter = router({
       const embeddingText = `${input.role} ${input.company} ${input.description ?? ""} ${(input.achievements ?? []).join(" ")}`;
       const embedding = await generateEmbedding(embeddingText);
 
-      const [created] = await db
-        .insert(experience)
-        .values({
-          id: crypto.randomUUID(),
-          profileId: p.id,
-          company: input.company,
-          role: input.role,
-          periodStart: input.periodStart,
-          periodEnd: input.periodEnd,
-          description: input.description,
-          achievements: input.achievements ?? [],
-          embedding,
-        })
-        .returning();
+      const result = await db.execute<{
+        id: string; profile_id: string; company: string; role: string;
+        period_start: string; period_end: string | null; description: string | null;
+        achievements: string[]; embedding: string;
+      }>(sql`
+        INSERT INTO experience (id, profile_id, company, role, period_start, period_end, description, achievements, embedding)
+        VALUES (
+          ${crypto.randomUUID()},
+          ${p.id},
+          ${input.company},
+          ${input.role},
+          ${normalizeDate(input.periodStart) ?? "2000-01-01"},
+          ${normalizeDate(input.periodEnd) ?? null},
+          ${input.description ?? null},
+          ${JSON.stringify(input.achievements ?? [])},
+          ${embedding.length > 0 ? `[${embedding.join(",")}]` : null}::vector(384)
+        )
+        RETURNING *
+      `);
 
-      return created!;
+      return result.rows[0];
     }),
 
   update: protectedProcedure
@@ -75,21 +88,19 @@ export const experienceRouter = router({
       const embeddingText = `${input.role} ${input.company} ${input.description ?? ""} ${(input.achievements ?? []).join(" ")}`;
       const embedding = await generateEmbedding(embeddingText);
 
-      const [updated] = await db
-        .update(experience)
-        .set({
-          company: input.company,
-          role: input.role,
-          periodStart: input.periodStart,
-          periodEnd: input.periodEnd,
-          description: input.description,
-          achievements: input.achievements ?? [],
-          embedding,
-        })
-        .where(eq(experience.id, input.id))
-        .returning();
+      await db.execute(sql`
+        UPDATE experience SET
+          company = ${input.company},
+          role = ${input.role},
+          period_start = ${normalizeDate(input.periodStart) ?? "2000-01-01"},
+          period_end = ${normalizeDate(input.periodEnd) ?? null},
+          description = ${input.description ?? null},
+          achievements = ${JSON.stringify(input.achievements ?? [])},
+          embedding = ${embedding.length > 0 ? `[${embedding.join(",")}]` : null}::vector(384)
+        WHERE id = ${input.id}
+      `);
 
-      return updated!;
+      return { ok: true };
     }),
 
   delete: protectedProcedure

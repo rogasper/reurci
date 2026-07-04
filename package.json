@@ -42,6 +42,7 @@
     "db:down": "turbo run db:down -F @reurci/db"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.7",
     "@ai-sdk/react": "^4.0.15",
     "@mastra/ai-sdk": "^1.6.1",
     "@mastra/core": "^1.49.0",

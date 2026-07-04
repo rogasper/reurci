@@ -1,3 +1,4 @@
+import { createOpenAI } from "@ai-sdk/openai";
 import { env } from "@reurci/env/server";
 
 export const sumopodModel = {
@@ -6,3 +7,8 @@ export const sumopodModel = {
   url: env.SUMOPOD_BASE_URL,
   apiKey: env.SUMOPOD_API_KEY,
 } as const;
+
+export const sumopod = createOpenAI({
+  baseURL: env.SUMOPOD_BASE_URL,
+  apiKey: env.SUMOPOD_API_KEY,
+});

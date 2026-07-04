@@ -3,6 +3,7 @@ import { profileRouter } from "./profile";
 import { experienceRouter } from "./experiences";
 import { skillRouter } from "./skills";
 import { educationRouter } from "./educations";
+import { cvVersionRouter } from "./cv-versions";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -18,5 +19,6 @@ export const appRouter = router({
   experience: experienceRouter,
   skill: skillRouter,
   education: educationRouter,
+  cvVersion: cvVersionRouter,
 });
 export type AppRouter = typeof appRouter;

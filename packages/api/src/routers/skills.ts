@@ -3,7 +3,7 @@ import { protectedProcedure, router } from "../index";
 import { db } from "@reurci/db";
 import { skill } from "@reurci/db/schema/skills";
 import { generateEmbedding } from "@reurci/mastra";
-import { eq } from "drizzle-orm";
+import { eq } from "@reurci/db";
 
 const skillInput = z.object({
   name: z.string().min(1),

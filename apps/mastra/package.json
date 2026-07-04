@@ -9,6 +9,7 @@
     }
   },
   "dependencies": {
+    "@reurci/db": "workspace:*",
     "@reurci/env": "workspace:*",
     "zod": "catalog:"
   }

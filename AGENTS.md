@@ -47,6 +47,23 @@ reurci/
 - **Shadows:** soft multi-layer at max 3-8% opacity + 1px oklab hairline
 - **Theme:** light only — no dark mode
 
+## Drizzle ORM Dependency Rules
+
+- `drizzle-orm` is owned by **`@reurci/db`** only — no other package installs it
+- Helpers like `eq`, `sql`, `desc`, `and`, `or`, `asc`, `like`, `inArray`, `isNull`, `isNotNull` are re-exported from `@reurci/db`
+- Any file needing these imports `from "@reurci/db"` — never `from "drizzle-orm"`
+- The `db` instance (drizzle client) is also exported from `@reurci/db`
+- Schema tables are imported `from "@reurci/db/schema/<table>"`
+
+```
+// ✅ Correct
+import { db, eq, sql } from "@reurci/db";
+import { experience } from "@reurci/db/schema/experiences";
+
+// ❌ Wrong — never import drizzle-orm directly
+import { eq, sql } from "drizzle-orm";
+```
+
 ## Resources
 
 - [Mastra Documentation](https://mastra.ai/llms.txt)

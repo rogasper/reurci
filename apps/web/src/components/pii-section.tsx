@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 const STORAGE_KEY = "reurci.pii.v1";
 
-interface PiiData {
+export interface PiiData {
   name: string;
   email: string;
   phone: string;
@@ -15,7 +15,7 @@ interface PiiData {
   linkedin: string;
 }
 
-async function deriveKey(userId: string): Promise<CryptoKey> {
+export async function deriveKey(userId: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(userId), { name: "PBKDF2" }, false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
@@ -37,7 +37,7 @@ async function encryptPii(data: PiiData, userId: string): Promise<string> {
   return btoa(String.fromCharCode(...combined));
 }
 
-async function decryptPii(encrypted: string, userId: string): Promise<PiiData | null> {
+export async function decryptPii(encrypted: string, userId: string): Promise<PiiData | null> {
   try {
     const key = await deriveKey(userId);
     const combined = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));

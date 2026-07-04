@@ -2,7 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../index";
 import { db } from "@reurci/db";
 import { education } from "@reurci/db/schema/educations";
-import { eq } from "drizzle-orm";
+import { eq } from "@reurci/db";
 
 const educationInput = z.object({
   institution: z.string().min(1),

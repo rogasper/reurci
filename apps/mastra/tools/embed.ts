@@ -1,32 +1,28 @@
 import { env } from "@reurci/env/server";
 
+const BASE_URL = env.SUMOPOD_BASE_URL.replace(/\/$/, "");
+const API_KEY = env.SUMOPOD_API_KEY;
+
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await fetch(`${env.SUMOPOD_BASE_URL}/embeddings`, {
+    const res = await fetch(`${BASE_URL}/embeddings`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${env.SUMOPOD_API_KEY}`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
       body: JSON.stringify({
         model: "text-embedding-3-small",
         input: text,
       }),
     });
 
-    if (response.ok) {
-      const data = (await response.json()) as {
-        data?: { embedding?: number[] }[];
-      };
+    if (res.ok) {
+      const data = (await res.json()) as { data?: { embedding?: number[] }[] };
       const embedding = data.data?.[0]?.embedding;
       if (embedding) {
         if (embedding.length >= 384) return embedding.slice(0, 384);
         return [...embedding, ...new Array(384 - embedding.length).fill(0)];
       }
     }
-  } catch {
-    // fallback below
-  }
+  } catch {}
 
   return fallbackEmbedding(text);
 }

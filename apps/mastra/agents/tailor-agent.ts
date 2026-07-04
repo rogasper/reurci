@@ -1,4 +1,5 @@
 import { Agent } from "@mastra/core/agent";
+import { Memory } from "@mastra/memory";
 import { sumopodModel } from "../model";
 
 export const tailorAgent = new Agent({
@@ -14,4 +15,10 @@ Rules:
 - Keep dates and durations exactly as provided
 - Use professional, ATS-friendly language`,
   model: sumopodModel as any,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+      workingMemory: { enabled: true },
+    },
+  }),
 });

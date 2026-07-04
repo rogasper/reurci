@@ -10,11 +10,21 @@ import {
   SensitiveDataFilter,
 } from "@mastra/observability";
 import { tailorAgent } from "./agents/tailor-agent";
+import { tailorCvWorkflow } from "./workflows/tailor-cv";
 
 export { generateEmbedding } from "./tools/embed";
+export { parseCV } from "./tools/parse-cv";
+export { generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext } from "./tools/tailor-steps";
 
 export const mastra = new Mastra({
   agents: { tailorAgent },
+  workflows: { tailorCvWorkflow },
+  backgroundTasks: {
+    enabled: true,
+    globalConcurrency: 10,
+    perAgentConcurrency: 3,
+    defaultTimeoutMs: 300_000,
+  },
   storage: new MastraCompositeStore({
     id: "composite-storage",
     default: new LibSQLStore({
