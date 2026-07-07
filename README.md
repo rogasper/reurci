@@ -1,99 +1,112 @@
-# reurci
+# REURCI — Rearrange Your CV
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Hono, TRPC, and more.
+**REURCI** (Rearrange Your CV) is an open-source CV tailoring assistant. Paste a job description, and REURCI helps you rephrase your experiences, select relevant skills, and generate a tailored CV — all with human-in-the-loop control.
+
+Built with [TanStack Start](https://tanstack.com/start), [Mastra](https://mastra.ai), [Hono](https://hono.dev), and [shadcn/ui](https://ui.shadcn.com/).
 
 ## Features
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **Hono** - Lightweight, performant server framework
-- **tRPC** - End-to-end type-safe APIs
-- **Bun** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Turborepo** - Optimized monorepo build system
+- **AI-powered CV tailoring** — Paste a JD → AI generates 3 summary variants and paraphrases each experience
+- **Human-in-the-loop** — Choose, edit, or regenerate each section. Nothing is final until you save.
+- **CV versioning** — Save snapshots, re-edit them later, track your history
+- **Privacy-first** — Personal info (name, email, phone, LinkedIn) is encrypted and stored only in your browser
+- **ATS scoring** — Rules-based score shows how well your CV matches the JD
+- **PDF export** — One-click download with ATS-friendly Helvetica format
+- **CV import** — Upload existing PDF/DOCX → AI extracts structured data
+- **BYOK** — Bring your own API key. Defaults to any OpenAI-compatible provider.
+
+## Tech Stack
+
+| Layer | Stack |
+|---|---|
+| Frontend | TanStack Start, shadcn/ui, Tailwind CSS, @ai-sdk/react |
+| Backend | Hono, tRPC, Drizzle ORM, PostgreSQL |
+| AI | Mastra (agentic framework), OpenAI-compatible API |
+| Bundle | Bun, Turborepo |
 
 ## Getting Started
 
-First, install the dependencies:
+### Prerequisites
+
+- [Bun](https://bun.sh) 1.3+
+- [Podman](https://podman.io) or Docker (for PostgreSQL + pgvector)
+- An OpenAI-compatible API key (default: [Sumopod](https://sumopod.com), or bring your own)
+
+### Setup
 
 ```bash
+# Clone & install
+git clone https://github.com/your-username/reurci
+cd reurci
 bun install
-```
 
-## Database Setup
+# Set up environment
+cp .env.example apps/server/.env
+# Edit apps/server/.env → set SUMOPOD_API_KEY=your-key
 
-This project uses PostgreSQL with Drizzle ORM.
+# Start database
+bun run db:start
+bun run db:init   # enables pgvector extension
+bun run db:push   # applies schema
 
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
-
-```bash
-bun run db:push
-```
-
-Then, run the development server:
-
-```bash
+# Start development
 bun run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+Web: [http://localhost:3001](http://localhost:3001)  
+API: [http://localhost:3000](http://localhost:3000)
 
-## UI Customization
+### Bring Your Own Key (BYOK)
 
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
+Set these environment variables in `apps/server/.env`:
 
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
-
-```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
+```env
+SUMOPOD_API_KEY=your-sumopod-key
+SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
+SUMOPOD_DEFAULT_MODEL=deepseek-v4-pro
 ```
 
-Import shared components like this:
+To use a different provider, override the base URL:
 
-```tsx
-import { Button } from "@reurci/ui/components/button";
-```
-
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
-## Project Structure
-
-```
-reurci/
-├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   └── server/      # Backend API (Hono, TRPC)
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+```env
+# Example: OpenRouter
+SUMOPOD_BASE_URL=https://openrouter.ai/api/v1
+SUMOPOD_DEFAULT_MODEL=openai/gpt-4o-mini
 ```
 
 ## Available Scripts
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run dev:server`: Start only the server
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
+| Script | Description |
+|---|---|
+| `bun run dev` | Start all apps in development mode (turbo) |
+| `bun run dev:web` | Start only the web app (port 3001) |
+| `bun run dev:server` | Start only the API server (port 3000) |
+| `bun run build` | Build all apps |
+| `bun run check-types` | TypeScript type checking |
+| `bun run db:push` | Apply Drizzle schema changes |
+| `bun run db:generate` | Generate Drizzle migrations |
+| `bun run db:start` | Start PostgreSQL via Podman/Docker |
+
+## Architecture
+
+```
+apps/
+├── web/        # Frontend (TanStack Start + shadcn/ui)
+├── server/     # API (Hono + tRPC + Mastra)
+└── mastra/     # AI agents, tools, workflows
+packages/
+├── ui/         # Shared shadcn/ui components
+├── api/        # tRPC routers & context
+├── auth/       # Better-Auth config
+├── db/         # Drizzle ORM + pgvector
+├── env/        # Zod-validated env vars
+└── config/     # Shared TS config
+```
+
+## Design
+
+The UI follows the **Portrait** design system — a warm, light-themed scrapbook aesthetic with Portrait Ink (#08304c) text, white canvas, pastel washes for accents, and generous border radii (cards 24px, buttons 28px). See `DESIGN.md` for the full design system.
+
+## License
+
+MIT — see [LICENSE](LICENSE)

@@ -12,12 +12,21 @@ import { ContextInput } from "@/components/tailor/context-input";
 import { CvPreview, CvDocument } from "@/components/cv-pdf-template";
 import { ATSScore } from "@/components/ats-score";
 
-export const Route = createFileRoute("/_auth/tailor")({ component: TailorPage });
+export const Route = createFileRoute("/_auth/tailor/")({ component: TailorPage });
 
 const Ink = "#08304c", Muted = "#797979";
 const Shadow = "0 0 0 1px oklab(0 0 0 / 0.04), 0 16px 16px -8px rgba(0,0,0,0.03), 0 5px 5px -2.5px rgba(0,0,0,0.03)";
 
-function TailorPage() {
+interface TailorPageProps {
+  initialSnapshot?: {
+    jd: string;
+    summary: string;
+    experiences: { company: string; role: string; periodStart: string; periodEnd: string | null; achievements: string[] }[];
+    skills: { name: string }[];
+  };
+}
+
+export function TailorPage({ initialSnapshot }: TailorPageProps = {}) {
   const { session } = Route.useRouteContext();
   const uid = session.data?.user.id ?? "";
   const {
@@ -29,7 +38,7 @@ function TailorPage() {
     getRelevance, generateExp, regenerateExp, generateSkills,
     generateCtx, addCtxBullets, setCtxSel,
     setExpState, setSkillS, setCustomSk, saveVersion, setSaving, setRelScores,
-  } = useTailor(uid);
+  } = useTailor(uid, initialSnapshot);
 
   const save = async () => {
     setSaving(true);

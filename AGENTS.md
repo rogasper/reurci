@@ -15,9 +15,18 @@ reurci/
 │   │   ├── index.ts     # Mastra instance — register all agents, workflows here
 │   │   ├── agents/      # Agent definitions
 │   │   ├── tools/       # Custom tools
-│   │   └── workflows/   # Workflow definitions
+│   │   ├── workflows/   # Workflow definitions
+│   │   ├── lib/         # Shared utilities (ai-utils, anti-fabrikasi)
+│   │   └── model.ts     # AI SDK provider config (sumopod via @ai-sdk/openai)
 │   ├── web/             # Frontend (React + TanStack Start)
+│   │   └── src/
+│   │       ├── hooks/   # Custom React hooks (use-tailor)
+│   │       ├── types/   # Shared TypeScript types (tailor)
+│   │       └── utils/   # Storage & API helpers (storage.ts)
 │   └── server/          # Backend API (Hono + tRPC)
+│       └── src/
+│           ├── routes/  # API route files by domain (ai-ping, ai-tailor, ai-parse-cv)
+│           └── lib/     # Cache & shared utilities (cache.ts)
 ├── packages/
 │   ├── ui/              # Shared shadcn/ui components
 │   ├── api/             # tRPC routers and context
@@ -36,6 +45,23 @@ reurci/
 - Set `SUMOPOD_API_KEY` in `apps/server/.env` (see `.env.example`)
 - Mastra dependencies (`mastra`, `@mastra/core`, `@mastra/memory`, etc.) live in the **root** `package.json`
 - The `@reurci/mastra` workspace package exports the Mastra instance consumed by `apps/server`
+- AI calls use `callAndParse()` from `apps/mastra/lib/ai-utils.ts` — never raw `fetch` or `generateObject`
+- Provider configured in `apps/mastra/model.ts` via `createOpenAI({ baseURL, apiKey })` using `@ai-sdk/openai`
+
+## Server API Routes
+
+- Routes organized in `apps/server/src/routes/` by domain: `ai-ping.ts`, `ai-tailor.ts`, `ai-parse-cv.ts`
+- `apps/server/src/index.ts` composes routes via `app.route("/api/ai", aiTailorRoutes)` pattern
+- Cache utilities (`simpleHash`, `tailorCache`, `parseCache`) in `apps/server/src/lib/cache.ts`
+
+## Web Frontend Rules
+
+- State management via custom hooks in `apps/web/src/hooks/` (e.g. `use-tailor.ts`)
+- Shared TypeScript types in `apps/web/src/types/` (e.g. `tailor.ts` for Variant, Pii, ExpEntry, TailorState)
+- Storage/API helpers in `apps/web/src/utils/storage.ts`: `ls()` (load state), `ss()` (save state), `apiPost()` (server calls)
+- Components in `apps/web/src/components/tailor/` for accordion sections, variant cards, etc.
+- API calls use `apiPost()` from `utils/storage.ts` — never raw `fetch` in components
+- Session storage keyed by `"reurci:tailor-state"` for page refresh persistence
 
 ## Design System
 

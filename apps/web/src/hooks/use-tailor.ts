@@ -8,7 +8,12 @@ import { decryptPii } from "@/components/pii-section";
 import type { Variant, Pii, ExpEntry, SkillEntry, CustomSk, RelScore, TailorState } from "@/types/tailor";
 import { STORAGE_KEY } from "@/types/tailor";
 
-export function useTailor(userId: string) {
+export function useTailor(userId: string, initialSnapshot?: {
+  jd: string;
+  summary: string;
+  experiences: { company: string; role: string; periodStart: string; periodEnd: string | null; achievements: string[] }[];
+  skills: { name: string }[];
+}) {
   const trpc = useTRPC();
   const { data: profile } = useQuery(trpc.profile.getOrCreate.queryOptions());
   const { data: experiences } = useQuery(trpc.experience.list.queryOptions());
@@ -16,14 +21,31 @@ export function useTailor(userId: string) {
   const { data: educations } = useQuery(trpc.education.list.queryOptions());
   const saveVersion = useMutation(trpc.cvVersion.create.mutationOptions());
 
-  const [jd, setJd] = useState("");
+  const [jd, setJd] = useState(initialSnapshot?.jd ?? "");
   const [pii, setPii] = useState<Pii>({ name: "", email: "", phone: "", address: "", linkedin: "" });
   const [sumV, setSumV] = useState<Variant[] | null>(null);
-  const [sumSel, setSumSel] = useState<number | null>(null);
-  const [sumEdit, setSumEdit] = useState<string | null>(null);
+  const [sumSel, setSumSel] = useState<number | null>(initialSnapshot ? 0 : null);
+  const [sumEdit, setSumEdit] = useState<string | null>(initialSnapshot?.summary ?? null);
   const [sumLoad, setSumLoad] = useState(false);
-  const [expState, setExpState] = useState<ExpEntry[]>([]);
-  const [skillS, setSkillS] = useState<SkillEntry[]>([]);
+  const [expState, setExpState] = useState<ExpEntry[]>(initialSnapshot ? 
+    initialSnapshot.experiences.map((e, i) => ({
+      id: `snapshot-${i}`,
+      company: e.company,
+      role: e.role,
+      periodStart: e.periodStart,
+      periodEnd: e.periodEnd,
+      description: null,
+      achievements: e.achievements,
+      included: true,
+      variants: [{ text: e.achievements.join("\n"), focus: "Saved", original: "" }],
+      selVar: 0,
+      edit: null,
+      loading: false,
+    })) : []
+  );
+  const [skillS, setSkillS] = useState<SkillEntry[]>(initialSnapshot ? 
+    initialSnapshot.skills.map((s, i) => ({ id: `snapshot-skill-${i}`, name: s.name, selected: true })) : []
+  );
   const [customSk, setCustomSk] = useState<CustomSk[]>([]);
   const [skLoad, setSkLoad] = useState(false);
   const [newSk, setNewSk] = useState("");
@@ -33,14 +55,16 @@ export function useTailor(userId: string) {
   const [saving, setSaving] = useState(false);
   const [relScores, setRelScores] = useState<RelScore[] | null>(null);
 
-  // Restore from sessionStorage
+  // Restore from sessionStorage (skip for snapshot re-edit)
   useEffect(() => {
-    const s = ls<TailorState>(STORAGE_KEY);
+    if (initialSnapshot) return;
+    const s = ls<TailorState>();
     if (s) { setJd(s.jd); setSumV(s.sumV); setSumSel(s.sumSel); setSumEdit(s.sumEdit); if (s.expState) setExpState(s.expState); if (s.skillS) setSkillS(s.skillS); if (s.customSk) setCustomSk(s.customSk); if (s.relScores) setRelScores(s.relScores); }
-  }, []);
+  }, [initialSnapshot]);
 
-  // Save to sessionStorage
+  // Save to sessionStorage (skip for snapshot re-edit)
   useEffect(() => {
+    if (initialSnapshot) return;
     if (!jd) return;
     ss(STORAGE_KEY, { jd, sumV, sumSel, sumEdit, expState, skillS, customSk, relScores } satisfies TailorState);
   }, [jd, sumV, sumSel, sumEdit, expState, skillS, customSk, relScores]);
@@ -59,13 +83,18 @@ export function useTailor(userId: string) {
 
   const selSkills = useMemo(() => [...skillS.filter(s => s.selected).map(s => ({ name: s.name })), ...customSk], [skillS, customSk]);
 
-  const ats = useMemo(() => {
-    if (!jd) return 0;
-    return computeATSScore({
-      jdHardSkills: jd.toLowerCase().match(/\b(?:react|node|python|java|ts|sql|aws|docker|k8s|kubernetes|angular|vue|next|go)\b/g) ?? [],
-      selectedExperiences: selExps.map(e => ({ description: "", achievements: e.achievements })),
-      selectedSkills: selSkills,
-    });
+  const [ats, setAts] = useState(0);
+  useEffect(() => {
+    if (!jd) { setAts(0); return; }
+    const timer = setTimeout(() => {
+      const score = computeATSScore({
+        jdHardSkills: jd.toLowerCase().match(/\b(?:react|node|python|java|ts|sql|aws|docker|k8s|kubernetes|angular|vue|next|go)\b/g) ?? [],
+        selectedExperiences: selExps.map(e => ({ description: "", achievements: e.achievements })),
+        selectedSkills: selSkills,
+      });
+      setAts(score);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [jd, selExps, selSkills]);
 
   const generateSummary = useCallback(async () => {

@@ -14,12 +14,12 @@ interface Props {
   onSelect: () => void;
   onEdit?: (text: string) => void;
   onRegenerate?: (context: string) => void;
+  lintScore?: number;   // anti-fabrikasi overlap score, 0-100
 }
 
 const textInk = "#08304c";
-const textMuted = "#797979";
 
-export function VariantCard({ variant, rank, selected, onSelect, onEdit, onRegenerate }: Props) {
+export function VariantCard({ variant, rank, selected, onSelect, onEdit, onRegenerate, lintScore }: Props) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(variant?.text ?? "");
   const [regenerating, setRegenerating] = useState(false);
@@ -53,6 +53,11 @@ export function VariantCard({ variant, rank, selected, onSelect, onEdit, onRegen
             style={{ background: "#d7ffe2", color: textInk }}
           >
             Recommended
+          </span>
+        )}
+        {lintScore != null && lintScore < 50 && (
+          <span className="rounded-[9999px] px-2 py-0.5 text-[10px] tracking-[0.08em] font-semibold" style={{ background: "#ffebd6", color: "#c77000" }}>
+            Review {lintScore}%
           </span>
         )}
       </div>
@@ -112,7 +117,7 @@ export function VariantCard({ variant, rank, selected, onSelect, onEdit, onRegen
             variant="ghost"
             size="xs"
             onClick={() => {
-              if (contextInput.trim()) {
+              if (contextInput.trim() && onRegenerate) {
                 onRegenerate(contextInput.trim());
                 setContextInput("");
                 setRegenerating(false);
