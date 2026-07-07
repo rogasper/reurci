@@ -1,6 +1,7 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
-import { sumopodModel } from "../model";
+import { env } from "@reurci/env/server";
+import { sumopod } from "../model";
 
 export const tailorAgent = new Agent({
   id: "tailor-agent",
@@ -14,7 +15,7 @@ Rules:
 - Never fabricate skills, roles, or experiences the user doesn't have
 - Keep dates and durations exactly as provided
 - Use professional, ATS-friendly language`,
-  model: sumopodModel as any,
+  model: sumopod(env.SUMOPOD_DEFAULT_MODEL) as any,
   memory: new Memory({
     options: {
       lastMessages: 10,
