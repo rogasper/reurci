@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { mastra, generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext } from "@reurci/mastra";
+import { mastra, generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext, generateCoverLetter } from "@reurci/mastra";
 import { tailorCache, simpleHash } from "../lib/cache";
 
 export const aiTailorRoutes = new Hono();
@@ -101,5 +101,11 @@ aiTailorRoutes.post("/relevance", async (c) => {
 aiTailorRoutes.post("/generate-from-context", async (c) => {
   const body = await c.req.json();
   const result = await generateFromContext(String(body.jd), String(body.userContext));
+  return c.json(result);
+});
+
+aiTailorRoutes.post("/cover-letter", async (c) => {
+  const body = await c.req.json();
+  const result = await generateCoverLetter(String(body.jd), body.cvSnapshot || {});
   return c.json(result);
 });

@@ -71,6 +71,8 @@ const contextOutput = z.object({
 const relevanceItem = z.object({ id: z.string(), score: z.number().int().min(0).max(100), reason: z.string() });
 const relevanceOutput = z.object({ results: z.array(relevanceItem) });
 
+const coverLetterOutput = z.object({ letter: z.string() });
+
 export async function generateSummaryVariants(
   jd: string,
   profile: { experiences: { role: string; company: string }[]; skills: { name: string }[] },
@@ -177,6 +179,30 @@ Generate 3-5 professional, ATS-friendly bullet points that:
 - Highlight skills valuable for the job
 Return JSON with bulletPoints array.`,
     `Job Description (for context):\n${jd.slice(0, 1500)}\n\nUser's description:\n${userContext}`,
+    3000,
+    { temperature: 0.4 },
+  );
+}
+
+export async function generateCoverLetter(
+  jd: string,
+  cvSnapshot: { summary?: string; experiences?: { company: string; role: string; achievements?: string[] }[]; skills?: { name: string }[] },
+): Promise<z.infer<typeof coverLetterOutput>> {
+  const expText = (cvSnapshot.experiences ?? [])
+    .slice(0, 3)
+    .map((e) => `${e.role} at ${e.company} — ${(e.achievements ?? []).slice(0, 2).join(", ")}`)
+    .join("\n");
+  const skillText = (cvSnapshot.skills ?? []).slice(0, 10).map((s) => s.name).join(", ");
+  return callAndParse(
+    coverLetterOutput,
+    `You write professional cover letters tailored to job descriptions.
+The user's CV has already been tailored to this specific job.
+Write a concise, professional cover letter (3-4 paragraphs, ~250 words):
+- Opening: expressing interest in the role
+- Body: connect candidate's relevant experience to job requirements
+- Closing: call to action
+Use professional tone. No markdown. Return JSON with "letter" field.`,
+    `Job Description:\n${jd.slice(0, 2000)}\n\nSummary: ${(cvSnapshot.summary ?? "").slice(0, 500)}\n\nKey Experiences:\n${expText}\n\nKey Skills: ${skillText}`,
     3000,
     { temperature: 0.4 },
   );

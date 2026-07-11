@@ -14,7 +14,7 @@ import { tailorCvWorkflow } from "./workflows/tailor-cv";
 
 export { generateEmbedding } from "./tools/embed";
 export { parseCV } from "./tools/parse-cv";
-export { generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext } from "./tools/tailor-steps";
+export { generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext, generateCoverLetter } from "./tools/tailor-steps";
 
 export const mastra = new Mastra({
   agents: { tailorAgent },

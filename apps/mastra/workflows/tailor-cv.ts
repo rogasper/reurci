@@ -55,12 +55,12 @@ const rephrasedSchema = z.object({
   experienceId: z.string().optional().default(""),
   original: z.string(),
   rephrased: z.string(),
-}).passthrough();
+}).loose();
 
 const bulletPointsSchema = z.object({
   original: z.string(),
   rephrased: z.string(),
-}).passthrough();
+}).loose();
 
 const strategyItemSchema = z.object({
   rank: z.number().optional(),
@@ -73,7 +73,7 @@ const strategyItemSchema = z.object({
   bullet_points: z.array(bulletPointsSchema).optional().default([]),
   selectedExperienceIds_by_strategy: z.array(z.string()).optional(),
   selectedSkillIds_by_strategy: z.array(z.string()).optional(),
-}).passthrough();
+}).loose();
 
 const strategiesOutputSchema = z.object({
   strategies: z.array(strategyItemSchema).transform((arr) =>
