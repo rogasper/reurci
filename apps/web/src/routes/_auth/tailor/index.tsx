@@ -38,6 +38,7 @@ export function TailorPage({ initialSnapshot }: TailorPageProps = {}) {
     getRelevance, generateExp, regenerateExp, generateSkills,
     generateCtx, addCtxBullets, setCtxSel,
     setExpState, setSkillS, setCustomSk, saveVersion, setSaving, setRelScores,
+    coverLetter, clLoad, generateCoverLetter,
   } = useTailor(uid, initialSnapshot);
 
   const save = async () => {
@@ -125,10 +126,30 @@ export function TailorPage({ initialSnapshot }: TailorPageProps = {}) {
           <div className="rounded-[24px] overflow-hidden" style={{ boxShadow: Shadow }}>
             <CvPreview data={{ name: pii.name, email: pii.email, phone: pii.phone, linkedin: pii.linkedin, summary: sumText, experiences: selExps, skills: selSkills, educations: educationsData }} />
           </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex gap-2 justify-end flex-wrap">
             <Button variant="outline" size="sm" onClick={dl}>Download PDF</Button>
+            <Button variant="outline" size="sm" onClick={generateCoverLetter} disabled={clLoad}>
+              {clLoad ? "Generating..." : "Cover Letter"}
+            </Button>
             <Button variant="rainbow" size="sm" onClick={save} disabled={saving}>{saving ? "Saving..." : "Save CV"}</Button>
           </div>
+          {coverLetter && (
+            <div className="rounded-[24px] bg-white p-4 mt-4" style={{ boxShadow: Shadow }}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 style={{ fontSize: "14px", color: Ink, fontWeight: 500 }}>Cover Letter</h3>
+                <Button variant="ghost" size="xs" onClick={() => {
+                  navigator.clipboard.writeText(coverLetter);
+                  toast.success("Copied!");
+                }}>Copy</Button>
+              </div>
+              <textarea
+                readOnly
+                value={coverLetter}
+                className="w-full rounded-[16px] border p-4 text-[12px] text-[#08304c] outline-none resize-y h-48 bg-[#f8f9fb]"
+                style={{ borderColor: "oklab(0 0 0 / 0.08)" }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -17,6 +17,8 @@ export function AccordionSection({ title, defaultOpen, badge, children }: Props)
       <button
         className="w-full flex items-center justify-between p-5"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label={`Toggle ${title} section`}
         style={{ cursor: "pointer" }}
       >
         <div className="flex items-center gap-2">

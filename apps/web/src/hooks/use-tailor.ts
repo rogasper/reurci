@@ -54,6 +54,8 @@ export function useTailor(userId: string, initialSnapshot?: {
   const [ctxSel, setCtxSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [relScores, setRelScores] = useState<RelScore[] | null>(null);
+  const [coverLetter, setCoverLetter] = useState<string | null>(null);
+  const [clLoad, setClLoad] = useState(false);
 
   // Restore from sessionStorage (skip for snapshot re-edit)
   useEffect(() => {
@@ -149,6 +151,17 @@ export function useTailor(userId: string, initialSnapshot?: {
     setCtxLoad(false);
   }, [jd]);
 
+  const generateCoverLetter = useCallback(async () => {
+    setClLoad(true);
+    try {
+      const d = await apiPost<{ letter: string }>("/api/ai/tailor/cover-letter", {
+        jd, cvSnapshot: { summary: sumText, experiences: selExps, skills: selSkills },
+      });
+      setCoverLetter(d.letter);
+    } catch { toast.error("Cover letter failed"); }
+    setClLoad(false);
+  }, [jd, sumText, selExps, selSkills]);
+
   const addCtxBullets = useCallback(() => {
     if (ctxSel.length === 0) return;
     const bullets = ctxBullets?.filter(b => ctxSel.includes(b)) ?? [];
@@ -164,10 +177,10 @@ export function useTailor(userId: string, initialSnapshot?: {
     sumV, sumSel, sumLoad, sumText, sumEdit,
     expState, skillS, customSk, skLoad, newSk, setNewSk,
     ctxLoad, ctxBullets, ctxSel,
-    relScores, saving,
+    relScores, saving, coverLetter, clLoad,
     selExps, selSkills, ats, educationsData,
     setSumSel, setSumEdit,
-    generateSummary, regenerateSum,
+    generateSummary, regenerateSum, generateCoverLetter,
     getRelevance, generateExp, regenerateExp,
     generateSkills,
     generateCtx, addCtxBullets, setCtxSel,
