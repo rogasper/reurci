@@ -8,6 +8,7 @@
     "dev": "vite dev"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@react-pdf/renderer": "^4.5.1",
     "@reurci/api": "workspace:*",
     "@reurci/env": "workspace:*",
@@ -29,6 +30,7 @@
     "pdfjs-dist": "^6.1.200",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "reicon": "^1.0.0",
     "sonner": "catalog:",
     "tailwindcss": "catalog:",
     "zod": "catalog:"
