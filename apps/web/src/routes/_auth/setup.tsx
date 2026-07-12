@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ExperienceList } from "@/components/experience-crud";
 import { SkillList } from "@/components/skill-crud";
 import { EducationList } from "@/components/education-crud";
+import { CertificateList } from "@/components/certificate-crud";
+import { LanguageList } from "@/components/language-crud";
+import { AchievementList } from "@/components/achievement-crud";
+import { ProjectList } from "@/components/project-crud";
 import { PiiSection } from "@/components/pii-section";
 import { CvUploader, type ParsedCV } from "@/components/cv-extractor";
 import { useTRPC } from "@/utils/trpc";
@@ -21,6 +25,7 @@ const cardShadow =
   "0 0 0 1px oklab(0 0 0 / 0.04), 0 16px 16px -8px rgba(0,0,0,0.03), 0 5px 5px -2.5px rgba(0,0,0,0.03)";
 
 function SetupPage() {
+  const { session } = Route.useRouteContext();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: profile, isLoading } = useQuery(trpc.profile.getOrCreate.queryOptions());
@@ -47,6 +52,7 @@ function SetupPage() {
   const createExp = useMutation(trpc.experience.create.mutationOptions());
   const createSkill = useMutation(trpc.skill.create.mutationOptions());
   const createEdu = useMutation(trpc.education.create.mutationOptions());
+  const createCert = useMutation(trpc.certificate.create.mutationOptions());
 
   const handleSaveAll = async () => {
     if (!parsedData) return;
@@ -55,6 +61,7 @@ function SetupPage() {
       experiences: parsedData.experiences.length,
       skills: parsedData.skills.length,
       educations: parsedData.educations.length,
+      certificates: parsedData.certificates?.length ?? 0,
     });
 
     // Dedup: fetch existing data from cache to avoid duplicates
@@ -66,6 +73,8 @@ function SetupPage() {
     const existingExpKeys = new Set(existingExp.map((e: any) => `${e.company}|${e.role}`.toLowerCase()));
     const existingSkillNames = new Set(existingSkills.map((s: any) => s.name.toLowerCase()));
     const existingEduKeys = new Set(existingEdu.map((e: any) => e.institution.toLowerCase()));
+    const existingCerts: any[] = queryClient.getQueryData(trpc.certificate.list.queryOptions().queryKey) ?? [];
+    const existingCertNames = new Set(existingCerts.map((c: any) => c.name.toLowerCase()));
 
     const toSaveExp = parsedData.experiences
       .filter((e) => { const key = `${String(e.company ?? "")}|${String(e.role ?? "")}`.toLowerCase(); return !existingExpKeys.has(key); });
@@ -73,9 +82,12 @@ function SetupPage() {
       .filter((s) => !existingSkillNames.has(s.name.toLowerCase()));
     const toSaveEdu = parsedData.educations
       .filter((e) => !existingEduKeys.has(e.institution.toLowerCase()));
+    const toSaveCert = (parsedData.certificates ?? [])
+      .filter((c) => !existingCertNames.has(c.name.toLowerCase()));
 
-    const skipped = parsedData.experiences.length + parsedData.skills.length + parsedData.educations.length
-      - toSaveExp.length - toSaveSkills.length - toSaveEdu.length;
+    const total = parsedData.experiences.length + parsedData.skills.length + parsedData.educations.length + (parsedData.certificates?.length ?? 0);
+    const toSave = toSaveExp.length + toSaveSkills.length + toSaveEdu.length + toSaveCert.length;
+    const skipped = total - toSave;
 
     console.log("[save-all] to save:", { exp: toSaveExp.length, skills: toSaveSkills.length, edu: toSaveEdu.length, skipped });
 
@@ -102,6 +114,13 @@ function SetupPage() {
           yearEnd: edu.yearEnd,
         })
       ),
+      ...toSaveCert.map((cert) =>
+        createCert.mutateAsync({
+          name: cert.name,
+          issuer: cert.issuer,
+          year: cert.year,
+        })
+      ),
     ]);
 
     const ok = results.filter((r) => r.status === "fulfilled").length;
@@ -113,6 +132,7 @@ function SetupPage() {
     queryClient.invalidateQueries(trpc.experience.list.queryFilter());
     queryClient.invalidateQueries(trpc.skill.list.queryFilter());
     queryClient.invalidateQueries(trpc.education.list.queryFilter());
+    queryClient.invalidateQueries(trpc.certificate.list.queryFilter());
 
     console.log("[save-all] done", results);
 
@@ -251,10 +271,24 @@ function SetupPage() {
           <ExperienceList />
           <SkillList />
           <EducationList />
+          <CertificateList />
+          <LanguageList />
+          <AchievementList />
+          <ProjectList />
         </>
       )}
 
-      <PiiSection />
+      <PiiSection userId={session.data?.user.id ?? ""} />
+
+      {!parsedData && (
+        <div className="flex justify-center pt-4">
+          <Link to="/dashboard">
+            <Button variant="rainbow" size="lg" className="px-8">
+              Continue to Workspace →
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ export interface Variant {
 }
 
 export interface Pii {
-  name: string; email: string; phone: string; address: string; linkedin: string;
+  name: string; title?: string; email: string; phone: string; address: string; linkedin: string; github?: string; website?: string;
 }
 
 export interface RelScore {
@@ -19,7 +19,7 @@ export interface CustomSk {
 }
 
 export interface SkillEntry {
-  id: string; name: string; selected: boolean; matchScore?: number;
+  id: string; name: string; selected: boolean; matchScore?: number; category?: string;
 }
 
 export interface ExpEntry {
@@ -33,4 +33,33 @@ export interface TailorState {
   jd: string;
   sumV: Variant[] | null; sumSel: number | null; sumEdit: string | null;
   expState: ExpEntry[]; skillS: SkillEntry[]; customSk: CustomSk[]; relScores: RelScore[] | null;
+}
+
+export interface CvReviewItem {
+  category: string;
+  item: string;
+  status: "pass" | "critical" | "warning" | "unverifiable";
+  detail: string;
+}
+
+export interface CvReviewResult {
+  experienceLevel: string;
+  items: CvReviewItem[];
+  overallAssessment: string;
+  quickWins: string[];
+}
+
+export interface CertificateEntry {
+  name: string;
+  issuer?: string;
+  year?: number;
+  url?: string;
+}
+
+export interface ProjectEntry {
+  name: string;
+  description?: string;
+  url?: string;
+  techStack?: string[];
+  year?: number;
 }

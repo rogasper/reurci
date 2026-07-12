@@ -2,7 +2,7 @@ import type { AppRouter } from "@reurci/api/routers/index";
 import { Toaster } from "@reurci/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
@@ -25,7 +25,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "My App",
+        title: "REURCI",
       },
     ],
     links: [
@@ -44,16 +44,19 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isPublic = pathname === "/" || pathname === "/login";
+
   return (
     <html lang="en" className="light">
       <head>
         <HeadContent />
       </head>
       <body className="min-h-svh bg-[--color-white-canvas] text-[--color-portrait-ink]">
-        <Header />
+        {isPublic && <Header />}
         <Outlet />
         <Toaster richColors />
-        <TanStackRouterDevtools position="bottom-left" />
+        {/* <TanStackRouterDevtools position="bottom-left" /> */}
         <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
         <Scripts />
       </body>

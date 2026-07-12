@@ -20,6 +20,27 @@ export interface ParsedCV {
     yearStart?: number;
     yearEnd?: number;
   }[];
+  certificates?: {
+    name: string;
+    issuer?: string;
+    year?: number;
+  }[];
+  languages?: {
+    name: string;
+    proficiency?: string;
+  }[];
+  achievements?: {
+    title: string;
+    description?: string;
+    year?: number;
+  }[];
+  projects?: {
+    name: string;
+    description?: string;
+    url?: string;
+    techStack?: string[];
+    year?: number;
+  }[];
 }
 
 interface Props {

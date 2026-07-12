@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@reurci/ui/components/button";
 import { Input } from "@reurci/ui/components/input";
-import { useTRPC } from "@/utils/trpc";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "reurci.pii.v1";
 
 export interface PiiData {
   name: string;
+  title?: string;
   email: string;
   phone: string;
   address: string;
   linkedin: string;
+  github?: string;
+  website?: string;
 }
 
 export async function deriveKey(userId: string): Promise<CryptoKey> {
@@ -48,28 +49,59 @@ export async function decryptPii(encrypted: string, userId: string): Promise<Pii
   }
 }
 
-export function PiiSection() {
-  const trpc = useTRPC();
-  const { data: profile } = useQuery(trpc.profile.getOrCreate.queryOptions());
-  const userId = profile?.userId;
-  const [pii, setPii] = useState<PiiData>({ name: "", email: "", phone: "", address: "", linkedin: "" });
+export function PiiSection({ userId, onUpdate, generateTitle }: { userId: string; onUpdate?: (pii: PiiData) => void; generateTitle?: () => Promise<string | null> }) {
+  const [pii, setPii] = useState<PiiData>({ name: "", title: "", email: "", phone: "", address: "", linkedin: "", github: "", website: "" });
   const [loaded, setLoaded] = useState(false);
+  const [titleGen, setTitleGen] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
-    if (!userId) return;
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      decryptPii(stored, userId).then((data) => { if (data) setPii(data); setLoaded(true); });
+      decryptPii(stored, userId).then((data) => {
+        if (data) {
+          setPii(data);
+          onUpdate?.(data);
+        }
+        setLoaded(true);
+      });
     } else {
       setLoaded(true);
     }
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [userId]);
 
   const handleSave = async () => {
-    if (!userId) return;
     const encrypted = await encryptPii(pii, userId);
     localStorage.setItem(STORAGE_KEY, encrypted);
+    onUpdate?.(pii);
     toast.success("Profile info saved locally");
+  };
+
+  const updateField = (key: keyof PiiData, value: string) => {
+    setPii((p) => {
+      const next = { ...p, [key]: value };
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => onUpdate?.(next), 400);
+      return next;
+    });
+  };
+
+  const handleGenerateTitle = async () => {
+    if (!generateTitle) return;
+    setTitleGen(true);
+    try {
+      const title = await generateTitle();
+      if (title) {
+        setPii((p) => {
+          const next = { ...p, title };
+          onUpdate?.(next);
+          return next;
+        });
+        toast.success("Title generated");
+      }
+    } catch { toast.error("Title generation failed"); }
+    setTitleGen(false);
   };
 
   const labelStyle = { fontSize: "12px", color: "#797979", fontWeight: 500, marginBottom: "4px", display: "block" };
@@ -85,26 +117,42 @@ export function PiiSection() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label style={labelStyle}>Full Name</label>
-            <Input value={pii.name} onChange={(e) => setPii((p) => ({ ...p, name: e.target.value }))} />
+            <Input value={pii.name} onChange={(e) => updateField("name", e.target.value)} />
           </div>
           <div>
-            <label style={labelStyle}>Email</label>
-            <Input type="email" value={pii.email} onChange={(e) => setPii((p) => ({ ...p, email: e.target.value }))} />
+            <label style={labelStyle}>Title {generateTitle && <Button variant="ghost" size="xs" onClick={handleGenerateTitle} disabled={titleGen} style={{ marginLeft: "8px", fontSize: "10px" }}>{titleGen ? "..." : "Generate from Exp"}</Button>}</label>
+            <Input value={pii.title ?? ""} onChange={(e) => updateField("title", e.target.value)} placeholder="Fullstack Engineer" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label style={labelStyle}>Phone</label>
-            <Input value={pii.phone} onChange={(e) => setPii((p) => ({ ...p, phone: e.target.value }))} />
+            <label style={labelStyle}>Email</label>
+            <Input type="email" value={pii.email} onChange={(e) => updateField("email", e.target.value)} />
           </div>
           <div>
-            <label style={labelStyle}>LinkedIn</label>
-            <Input value={pii.linkedin} onChange={(e) => setPii((p) => ({ ...p, linkedin: e.target.value }))} />
+            <label style={labelStyle}>Phone</label>
+            <Input value={pii.phone} onChange={(e) => updateField("phone", e.target.value)} />
           </div>
         </div>
-        <div>
-          <label style={labelStyle}>Address</label>
-          <Input value={pii.address} onChange={(e) => setPii((p) => ({ ...p, address: e.target.value }))} />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label style={labelStyle}>LinkedIn</label>
+            <Input value={pii.linkedin} onChange={(e) => updateField("linkedin", e.target.value)} placeholder="linkedin.com/in/..." />
+          </div>
+          <div>
+            <label style={labelStyle}>GitHub</label>
+            <Input value={pii.github ?? ""} onChange={(e) => updateField("github", e.target.value)} placeholder="github.com/..." />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label style={labelStyle}>Website</label>
+            <Input value={pii.website ?? ""} onChange={(e) => updateField("website", e.target.value)} placeholder="yourdomain.dev" />
+          </div>
+          <div>
+            <label style={labelStyle}>Address</label>
+            <Input value={pii.address} onChange={(e) => updateField("address", e.target.value)} />
+          </div>
         </div>
         {loaded && (
           <Button variant="secondary" size="sm" className="w-full" onClick={handleSave}>
