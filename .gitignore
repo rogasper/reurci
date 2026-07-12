@@ -56,3 +56,7 @@ temp
 plan
 .opencode
 .agents
+
+# Mastra
+*.duckdb
+*.duckdb.wal
