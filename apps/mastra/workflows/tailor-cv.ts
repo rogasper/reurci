@@ -214,16 +214,16 @@ const generateStrategies = createStep({
     const jd = getStepResult(analyzeJd);
     const relevant = getStepResult(fetchRelevant);
 
-    // Limit prompt size: 3 exp × 2 achievements × 150-char desc, 8 skills
-    const topExp = relevant.experiences.slice(0, 3);
+    // Use up to 5 experiences × 4 achievements × full desc, 12 skills
+    const topExp = relevant.experiences.slice(0, 5);
     const experienceText = topExp
       .map(
         (e) =>
-          `EXP[${e.id}]: ${e.role} at ${e.company} (${e.periodStart}—${e.periodEnd ?? "Present"}). ${(e.description ?? "").slice(0, 150)}. Ach: ${e.achievements.slice(0, 2).join(" | ")}`,
+          `EXP[${e.id}]: ${e.role} at ${e.company} (${e.periodStart}—${e.periodEnd ?? "Present"}). ${e.description ?? ""}. Achievements: ${e.achievements.slice(0, 4).join(" | ")}`,
       )
       .join("\n");
 
-    const topSkills = relevant.skills.slice(0, 8);
+    const topSkills = relevant.skills.slice(0, 12);
     const skillsText = topSkills
       .map((s) => `SKILL[${s.id}]: ${s.name}`)
       .join("\n");
@@ -232,12 +232,14 @@ const generateStrategies = createStep({
       strategiesOutputSchema,
       `You rewrite CV bullet points and select relevant skills for specific job applications.
 
-CRITICAL:
-- ONLY rephrase from given source — NEVER invent
-- NEVER change dates, titles, or fabricate
-- ATS-friendly, quantify with numbers
+Guidelines:
+- Rephrase achievements to be more impactful and ATS-friendly
+- Quantify results with numbers when context supports it
+- Adjust emphasis and framing to match job requirements — what matters most to this employer?
+- You can infer reasonable accomplishments from context, but stay grounded in the source material
+- Do not fabricate entirely new roles, dates, or skills not present in the data
 
-Generate 3 strategies: STRONGEST (quantitative), RELEVANCE (closest match), BALANCED (broad).
+Generate 3 strategies: STRONGEST (quantitative, boldest framing), RELEVANCE (closest match to JD), BALANCED (broad but well-aligned).
 
 Return ONLY one of these two exact JSON formats (choose whichever is easier):
 
@@ -247,7 +249,7 @@ Option B: [{"rank":1,"focus":"STRONGEST","summary":"...","selectedExperienceIds"
 
       `JD:\n${init.jobDescription}\n\nRequired: ${jd.hardSkills.join(", ")}\nSoft: ${jd.softSkills.join(", ")}\nLevel: ${jd.seniority}\n\nCANDIDATE:\n${experienceText}\n${skillsText}`,
       6000,
-      { temperature: 0.5 },
+      { temperature: 0.7 },
     );
   },
 });

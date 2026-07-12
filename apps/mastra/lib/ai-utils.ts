@@ -52,6 +52,9 @@ async function chatCompletion(
   temperature: number,
   signal?: AbortSignal,
 ): Promise<string> {
+  const hasJson = /json/i.test(system) || /json/i.test(prompt);
+  const userPrompt = hasJson ? prompt : `${prompt}\n\nReturn JSON.`;
+
   const res = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
@@ -59,10 +62,11 @@ async function chatCompletion(
       model: MODEL,
       messages: [
         { role: "system", content: system },
-        { role: "user", content: prompt },
+        { role: "user", content: userPrompt },
       ],
       temperature,
       stream: true,
+      response_format: { type: "json_object" },
     }),
     signal,
   });
@@ -117,8 +121,8 @@ export async function callAndParse<T>(
 
   for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
     try {
-      const usedPrompt = attempt > 1 ? prompt.slice(0, 2000) : prompt;
-      const usedTemp = attempt > 1 ? Math.min(temperature + 0.2, 0.7) : temperature;
+      const usedPrompt = prompt;
+      const usedTemp = attempt > 1 ? Math.min(temperature + 0.2, 0.8) : temperature;
 
       console.log(`[ai-utils]   → chatCompletion attempt=${attempt} promptLen=${usedPrompt.length} temp=${usedTemp}`);
 

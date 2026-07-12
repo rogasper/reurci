@@ -72,4 +72,30 @@ export const cvVersionRouter = router({
       await db.delete(cvVersion).where(eq(cvVersion.id, input.id));
       return { ok: true };
     }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        jobTitle: z.string().optional(),
+        companyName: z.string().optional(),
+        jobDescription: z.string().optional(),
+        cvSnapshot: z.any(),
+        atsScore: z.number().int().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const [updated] = await db
+        .update(cvVersion)
+        .set({
+          jobTitle: input.jobTitle,
+          companyName: input.companyName,
+          jobDescription: input.jobDescription,
+          cvSnapshot: input.cvSnapshot,
+          atsScore: input.atsScore,
+        })
+        .where(eq(cvVersion.id, input.id))
+        .returning();
+      return updated!;
+    }),
 });

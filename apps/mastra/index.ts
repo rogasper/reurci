@@ -10,14 +10,16 @@ import {
   SensitiveDataFilter,
 } from "@mastra/observability";
 import { tailorAgent } from "./agents/tailor-agent";
+import { cvReviewerAgent } from "./agents/cv-reviewer-agent";
 import { tailorCvWorkflow } from "./workflows/tailor-cv";
 
 export { generateEmbedding } from "./tools/embed";
 export { parseCV } from "./tools/parse-cv";
-export { generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext, generateCoverLetter } from "./tools/tailor-steps";
+export { generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext, generateCoverLetter, reviewCv, categorizeSkills, scoreProjectsAgainstJd, generateJobTitle } from "./tools/tailor-steps";
+export { callAndParse } from "./lib/ai-utils";
 
 export const mastra = new Mastra({
-  agents: { tailorAgent },
+  agents: { tailorAgent, cvReviewerAgent },
   workflows: { tailorCvWorkflow },
   backgroundTasks: {
     enabled: true,

@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { mastra, generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext, generateCoverLetter } from "@reurci/mastra";
+import { mastra, generateSummaryVariants, generateExperienceVariants, scoreSkillsAgainstJd, regenerateVariants, analyzeRelevance, generateFromContext, generateCoverLetter, reviewCv, categorizeSkills, scoreProjectsAgainstJd, generateJobTitle } from "@reurci/mastra";
 import { tailorCache, simpleHash } from "../lib/cache";
+import { db, eq } from "@reurci/db";
+import { skillCategory } from "@reurci/db/schema/skill_categories";
 
 export const aiTailorRoutes = new Hono();
 
@@ -108,4 +110,50 @@ aiTailorRoutes.post("/cover-letter", async (c) => {
   const body = await c.req.json();
   const result = await generateCoverLetter(String(body.jd), body.cvSnapshot || {});
   return c.json(result);
+});
+
+aiTailorRoutes.post("/review-cv", async (c) => {
+  const body = await c.req.json();
+  const result = await reviewCv(String(body.cvText));
+  return c.json(result);
+});
+
+aiTailorRoutes.post("/categorize-skills", async (c) => {
+  const body = await c.req.json();
+  const items: { id: string; name: string }[] = body.skills || [];
+
+  const cacheEntries = await db.select().from(skillCategory);
+  const known: Record<string, string> = {};
+  for (const entry of cacheEntries) {
+    known[entry.name.toLowerCase()] = entry.category;
+  }
+
+  const unknown = items.filter(i => !known[i.name.toLowerCase()]);
+  const aiResult = unknown.length > 0 ? await categorizeSkills(items, known) : { skills: [], newCategories: [] };
+
+  for (const s of aiResult.skills) {
+    const key = s.name.toLowerCase();
+    const existing = cacheEntries.find(e => e.name.toLowerCase() === key);
+    if (existing) {
+      await db.update(skillCategory).set({ confidence: existing.confidence + 1 }).where(eq(skillCategory.id, existing.id));
+    } else {
+      await db.insert(skillCategory).values({ name: s.name, category: s.category });
+    }
+    known[key] = s.category;
+  }
+
+  const merged = items.map(i => ({ id: i.id, name: i.name, category: known[i.name.toLowerCase()] ?? "" }));
+  return c.json({ skills: merged, newCategories: aiResult.newCategories ?? [] });
+});
+
+aiTailorRoutes.post("/project-relevance", async (c) => {
+  const body = await c.req.json();
+  const result = await scoreProjectsAgainstJd(String(body.jd), body.projects || []);
+  return c.json(result);
+});
+
+aiTailorRoutes.post("/generate-title", async (c) => {
+  const body = await c.req.json();
+  const title = await generateJobTitle(String(body.jd), body.experiences || []);
+  return c.json({ title });
 });

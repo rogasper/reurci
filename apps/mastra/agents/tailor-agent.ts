@@ -15,7 +15,7 @@ Rules:
 - Never fabricate skills, roles, or experiences the user doesn't have
 - Keep dates and durations exactly as provided
 - Use professional, ATS-friendly language`,
-  model: sumopod(env.SUMOPOD_DEFAULT_MODEL) as any,
+  model: sumopod.chat(env.SUMOPOD_DEFAULT_MODEL),
   memory: new Memory({
     options: {
       lastMessages: 10,
